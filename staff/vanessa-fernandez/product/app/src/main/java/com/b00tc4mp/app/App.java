@@ -1,195 +1,238 @@
 package com.b00tc4mp.app;
 
 import javax.swing.*;
+
 import java.awt.*;
 
-// Pequeña aplicación Swing con registro/login y navegación por pantallas
+import com.b00tc4mp.app.logic.Logic;
+import com.b00tc4mp.app.logic.ZenQuote;
+
 public class App extends JFrame {
+
     public static void main(String[] args) {
-        // Arranca la UI en el hilo de eventos de Swing
         SwingUtilities.invokeLater(() -> new App().setVisible(true));
     }
 
-    // Gestor para cambiar entre pantallas (Register/Login/Home)
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel cards = new JPanel(cardLayout);
 
-    // Estado simple en memoria para el usuario registrado
-    private String registeredUser = null;
-    private String registeredPass = null;
+    private JLabel welcome;
+    private JTextPane quoteArea;
+
+    private Logic logic;
 
     public App() {
-        // Configuración básica de la ventana principal
         setTitle("App");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(400, 300);
         setLocationRelativeTo(null);
 
-        // Construye las tres pantallas principales
+        logic = Logic.get();
+
+        // Panels
         JPanel registerPanel = createRegisterPanel();
         JPanel loginPanel = createLoginPanel();
         JPanel homePanel = createHomePanel();
 
-        // Registra las pantallas en el contenedor con sus claves
-        cards.add(registerPanel, "Register");
-        cards.add(loginPanel, "Login");
-        cards.add(homePanel, "Home");
+        cards.add(registerPanel, "register");
+        cards.add(loginPanel, "login");
+        cards.add(homePanel, "home");
 
-        // Añade el contenedor y muestra inicialmente la pantalla de registro
         add(cards);
-        cardLayout.show(cards, "Register");
+        cardLayout.show(cards, "login");
     }
 
     private JPanel createRegisterPanel() {
-        // Pantalla de registro de usuario
         JPanel panel = new JPanel(new GridBagLayout());
-        
-        GridBagConstraints gbc = new GridBagConstraints(); // Objeto de restricciones para GridBagLayout
-        gbc.insets = new Insets(5, 5, 5, 5); // Márgenes externos (arriba, izquierda, abajo, derecha) de 5 px
-        gbc.fill = GridBagConstraints.HORIZONTAL; // El componente se estira horizontalmente dentro de su celda
 
-        JLabel title = new JLabel("Register", SwingConstants.CENTER); // Etiqueta de título centrada
-        title.setBackground(Color.CYAN); // Establece color de fondo cian
-        title.setOpaque(true); // Necesario para que se pinte el color de fondo en un JLabel
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 18f)); // Fuente en negrita, tamaño 18
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; // Posición (col 0, fila 0) ocupando 2 columnas
-        panel.add(title, gbc); // Añade el título al panel usando las restricciones
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel title = new JLabel("Register", SwingConstants.CENTER);
+        title.setOpaque(true);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(title, gbc);
 
         gbc.gridwidth = 1;
-        gbc.gridx = 0; gbc.gridy = 1;
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(new JLabel("Name:"), gbc);
+        JTextField nameField = new JTextField(15);
+        gbc.gridx = 1;
+        panel.add(nameField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         panel.add(new JLabel("Username:"), gbc);
         JTextField usernameField = new JTextField(15);
         gbc.gridx = 1;
         panel.add(usernameField, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
         panel.add(new JLabel("Password:"), gbc);
         JPasswordField passwordField = new JPasswordField(15);
         gbc.gridx = 1;
         panel.add(passwordField, gbc);
 
-        JButton registerButton = new JButton("Register");
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
-        panel.add(registerButton, gbc);
-
-        JButton toLoginButton = new JButton("Go to Login");
+        gbc.gridx = 0;
         gbc.gridy = 4;
-        panel.add(toLoginButton, gbc);
+        panel.add(new JLabel("Confirm Password:"), gbc);
+        JPasswordField confirmPasswordField = new JPasswordField(15);
+        gbc.gridx = 1;
+        panel.add(confirmPasswordField, gbc);
 
-        JLabel messageLabel = new JLabel("", SwingConstants.CENTER);
+        JButton registerBtn = new JButton("Register");
+        gbc.gridx = 0;
         gbc.gridy = 5;
-        panel.add(messageLabel, gbc);
+        gbc.gridwidth = 2;
+        panel.add(registerBtn, gbc);
 
-        // Al registrarse, valida campos y guarda usuario/contraseña en memoria
-        registerButton.addActionListener(e -> {
+        JButton toLoginBtn = new JButton("Go to Login");
+        gbc.gridy = 6;
+        panel.add(toLoginBtn, gbc);
+
+        JLabel message = new JLabel("", SwingConstants.CENTER);
+        gbc.gridy = 7;
+        panel.add(message, gbc);
+
+        registerBtn.addActionListener(e -> {
+            String name = nameField.getText().trim();
             String username = usernameField.getText().trim();
             String password = new String(passwordField.getPassword());
+            String confirmPass = new String(confirmPasswordField.getPassword());
 
-            if (username.isEmpty() || password.isEmpty()) {
-                messageLabel.setText("Please fill in all fields.");
-            } else {
-                registeredUser = username;
-                registeredPass = password;
+            try {
+                logic.registerUser(name, username, password, confirmPass);
 
-                messageLabel.setText("Registration successful!. Go to Login.");
+                nameField.setText("");
+                usernameField.setText("");
+                passwordField.setText("");
+                confirmPasswordField.setText("");
+                message.setText("");
+
+                cardLayout.show(cards, "login");
+            } catch (Exception ex) {
+                message.setText("Error: " + ex.getMessage());
             }
         });
 
-        // Navega a la pantalla de Login y limpia los campos
-        toLoginButton.addActionListener(e -> {
+        toLoginBtn.addActionListener(e -> {
+            nameField.setText("");
             usernameField.setText("");
             passwordField.setText("");
-            messageLabel.setText("");
+            confirmPasswordField.setText("");
+            message.setText("");
 
-            cardLayout.show(cards, "Login");
+            cardLayout.show(cards, "login");
         });
 
         return panel;
     }
 
     private JPanel createLoginPanel() {
-        // Pantalla de inicio de sesión
         JPanel panel = new JPanel(new GridBagLayout());
-        
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel title = new JLabel("Login", SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
         panel.add(title, gbc);
 
         gbc.gridwidth = 1;
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         panel.add(new JLabel("Username:"), gbc);
         JTextField usernameField = new JTextField(15);
         gbc.gridx = 1;
         panel.add(usernameField, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         panel.add(new JLabel("Password:"), gbc);
         JPasswordField passwordField = new JPasswordField(15);
         gbc.gridx = 1;
         panel.add(passwordField, gbc);
 
-        JButton loginButton = new JButton("Login");
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
-        panel.add(loginButton, gbc);
+        JButton loginBtn = new JButton("Login");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        panel.add(loginBtn, gbc);
 
-        JButton toRegisterButton = new JButton("Go to Register");
+        JButton toRegisterBtn = new JButton("Go to Register");
         gbc.gridy = 4;
-        panel.add(toRegisterButton, gbc);
+        panel.add(toRegisterBtn, gbc);
 
-        JLabel messageLabel = new JLabel("", SwingConstants.CENTER);
+        JLabel message = new JLabel("", SwingConstants.CENTER);
         gbc.gridy = 5;
-        panel.add(messageLabel, gbc);
+        panel.add(message, gbc);
 
-        // Intenta validar las credenciales contra las registradas en memoria
-        loginButton.addActionListener(e -> {
+        loginBtn.addActionListener(e -> {
             String username = usernameField.getText().trim();
             String password = new String(passwordField.getPassword());
 
-            if (username.equals(registeredUser) && password.equals(registeredPass)) {
-                messageLabel.setText("");
+            try {
+                logic.loginUser(username, password);
 
-                // TODO call https://zenquotes.io/api/today and display the quote in Home panel
-                // Al autenticarse correctamente, se muestra la pantalla Home
-                cardLayout.show(cards, "Home");
-            } else {
-                messageLabel.setText("Invalid credentials. Try again.");
-            
-            } 
+                usernameField.setText("");
+                passwordField.setText("");
+                message.setText("");
+
+                String name = logic.getCurrentUser().getName();
+
+                ZenQuote quote = logic.getZenQuoteOfDay();
+
+                welcome.setText("Welcome, " + name + "!");
+
+                quoteArea.setText("<html><center>&quot;" + quote.getQuote() + "&quot;<br>- " + quote.getAuthor()
+                        + "</center></html>");
+
+                cardLayout.show(cards, "home");
+            } catch (Exception ex) {
+                message.setText("Error: " + ex.getMessage());
+            }
         });
 
-        // Navega a la pantalla de Registro y limpia los campos
-        toRegisterButton.addActionListener(e -> {
+        toRegisterBtn.addActionListener(e -> {
             usernameField.setText("");
             passwordField.setText("");
-            messageLabel.setText("");
+            message.setText("");
 
-            cardLayout.show(cards, "Register");
+            cardLayout.show(cards, "register");
         });
 
         return panel;
     }
 
     private JPanel createHomePanel() {
-        // Pantalla Home mostrada tras iniciar sesión
         JPanel panel = new JPanel(new BorderLayout());
-        
-       JLabel welcome = new JLabel("Welcome to the Home Page!", SwingConstants.CENTER);
-       welcome.setFont(welcome.getFont().deriveFont(Font.BOLD, 20f));
-       panel.add(welcome, BorderLayout.CENTER);
 
-       JButton logoutButton = new JButton("Logout");
-       panel.add(logoutButton, BorderLayout.SOUTH);
+        welcome = new JLabel("Welcome Home!", SwingConstants.CENTER);
+        welcome.setFont(welcome.getFont().deriveFont(Font.BOLD, 20f));
+        panel.add(welcome, BorderLayout.NORTH);
 
-       // Vuelve a la pantalla de Login al cerrar sesión
-       logoutButton.addActionListener(e -> {
-           cardLayout.show(cards, "Login");
-       });
+        quoteArea = new JTextPane();
+        quoteArea.setEditable(false);
+        quoteArea.setContentType("text/html");
+        quoteArea.setFont(quoteArea.getFont().deriveFont(Font.ITALIC, 14f));
 
-         return panel;
+        panel.add(quoteArea, BorderLayout.CENTER);
+
+        JButton logoutBtn = new JButton("Logout");
+        panel.add(logoutBtn, BorderLayout.SOUTH);
+        logoutBtn.addActionListener(e -> cardLayout.show(cards, "login"));
+
+        return panel;
     }
 }
