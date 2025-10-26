@@ -115,6 +115,12 @@ public class Logic {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+            int status = response.statusCode();
+
+            if (status != 200) {
+                throw new Exception("Received non-OK response: " + status);
+            }
+
             JSONArray jsonArray = new JSONArray(response.body());
             JSONObject jsonObject = jsonArray.getJSONObject(0);
 
