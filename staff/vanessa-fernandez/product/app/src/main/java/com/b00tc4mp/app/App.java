@@ -2,10 +2,10 @@ package com.b00tc4mp.app;
 
 import javax.swing.*;
 
-import java.awt.*;
+import com.b00tc4mp.logic.Logic;
+import com.b00tc4mp.logic.ZenQuote;
 
-import com.b00tc4mp.app.logic.Logic;
-import com.b00tc4mp.app.logic.ZenQuote;
+import java.awt.*;
 
 public class App extends JFrame {
 

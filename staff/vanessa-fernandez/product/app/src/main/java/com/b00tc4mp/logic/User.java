@@ -1,4 +1,4 @@
-package com.b00tc4mp.app.logic;
+package com.b00tc4mp.logic;
 
 public class User {
     private String id;
@@ -13,12 +13,13 @@ public class User {
 
     public String getId() {
         return id;
-    }    
+    }
 
     public String getName() {
         return name;
     }
+
     public String getUsername() {
         return username;
-    }   
+    }
 }

@@ -3,6 +3,7 @@ curl -X POST http://localhost:8080/api/users \
   -d '{
     "name": "Pepito Grillo",
     "username": "pepitogrillo",
-    "password": "123123123"
+    "password": "123123123",
+    "confirmPassword": "123123123"
   }' \
   -v

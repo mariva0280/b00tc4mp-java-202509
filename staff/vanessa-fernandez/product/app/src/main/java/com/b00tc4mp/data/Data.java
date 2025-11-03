@@ -1,4 +1,4 @@
-package com.b00tc4mp.app.data;
+package com.b00tc4mp.data;
 
 import java.util.ArrayList;
 
@@ -6,7 +6,8 @@ public class Data {
     private ArrayList<UserData> users = new ArrayList<>();
     private static Data instance;
 
-    private Data() {}
+    private Data() {
+    }
 
     public static Data get() {
         if (instance == null) {
@@ -15,6 +16,7 @@ public class Data {
             UserData pepito = new UserData("Pepito Grillo", "pepito", "123123123");
             instance.addUser(pepito);
         }
+
         return instance;
     }
 
@@ -32,8 +34,9 @@ public class Data {
                 return user;
             }
         }
+
         return null;
-    }   
+    }
 
     public void removeUsers() {
         users.clear();
@@ -45,6 +48,7 @@ public class Data {
                 return user;
             }
         }
+
         return null;
     }
 }

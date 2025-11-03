@@ -1,37 +1,43 @@
-package com.b00tc4mp.app.logic;
+package com.b00tc4mp.logic;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
+import java.net.http.HttpRequest.BodyPublishers;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
-import com.b00tc4mp.app.data.Data;
-import com.b00tc4mp.app.data.UserData;
-
+import com.b00tc4mp.data.Data;
+import com.b00tc4mp.data.UserData;
+import com.google.gson.JsonObject;
 
 public class Logic {
+
     private static Logic instance;
 
     protected String userId;
 
     private Data data;
 
+    private final Gson gson;
+
     private Logic() {
         data = Data.get();
+
+        gson = new Gson();
     }
 
     public static Logic get() {
         if (instance == null) {
             instance = new Logic();
         }
+
         return instance;
     }
 
     public void registerUser(String name, String username, String password, String confirmPassword) throws Exception {
-        // Implementa la lógica para registrar un nuevo usuario
         if (name == null || name.isEmpty()) {
             throw new Exception("Name cannot be empty");
         }
@@ -52,17 +58,43 @@ public class Logic {
             throw new Exception("Passwords do not match");
         }
 
-        UserData user = data.findUserByUsername(username);
+        try {
+            String jsonBody = String.format("""
+                    {
+                        "name": "%s",
+                        "username": "%s",
+                        "password": "%s",
+                        "confirmPassword": "%s"
+                    }
+                    """, name, username, password, confirmPassword);
 
-        if (user != null) {
-            throw new Exception("Username already exists");
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI("http://localhost:8080/api/users"))
+                    .header("Content-Type", "application/json")
+                    .POST(BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 201) {
+                return;
+            }
+
+            Gson gson = new Gson();
+            JsonObject errorResponse = gson.fromJson(response.body(), JsonObject.class);
+
+            String error = errorResponse.get("error").getAsString();
+            String message = errorResponse.get("message").getAsString();
+
+            throw new Exception(error + ": " + message);
+        } catch (Exception e) {
+            throw new Exception("error in register: " + e.getMessage());
         }
-
-        data.addUser(new UserData(name, username, password));
     }
 
     public void loginUser(String username, String password) throws Exception {
-        // Implementa la lógica para autenticar a un usuario
         if (username == null || username.isEmpty()) {
             throw new Exception("Username cannot be empty");
         }
@@ -72,7 +104,7 @@ public class Logic {
         }
 
         UserData user = data.findUserByUsername(username);
-        
+
         if (user == null) {
             throw new Exception("User not found");
         }
@@ -85,31 +117,28 @@ public class Logic {
     }
 
     public void logoutUser() {
-        // Implementa la lógica para cerrar la sesión del usuario
         this.userId = null;
     }
 
     public boolean isUserLoggedIn() {
-        // Implementa la lógica para verificar si un usuario está autenticado
         return this.userId != null;
     }
 
     public User getCurrentUser() throws Exception {
-        // Implementa la lógica para obtener la información del usuario autenticado
         if (this.userId == null) {
-            throw new Exception("No user is logged in");
+            throw new Exception("No user is currently logged in");
         }
 
         UserData user = data.findUserById(this.userId);
 
         return new User(user.getId(), user.getName(), user.getUsername());
-    }   
+    }
 
     public ZenQuote getZenQuoteOfDay() throws Exception {
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://zenquotes.io/api/today"))
+                    .uri(new URI("https://zenquotes.io/api/today"))
                     .GET()
                     .build();
 
@@ -118,20 +147,31 @@ public class Logic {
             int status = response.statusCode();
 
             if (status != 200) {
-                throw new Exception("Received non-OK response: " + status);
+                throw new Exception("Failed to fetch quote, status code: " + status);
             }
 
-            JSONArray jsonArray = new JSONArray(response.body());
-            JSONObject jsonObject = jsonArray.getJSONObject(0);
+            // Parse JSON using Gson
+            QuoteResponse[] quotes = gson.fromJson(response.body(), QuoteResponse[].class);
 
-            String quote = jsonObject.getString("q");
-            String author = jsonObject.getString("a");
+            if (quotes.length == 0) {
+                throw new Exception("No quote found in response");
+            }
 
-            return new ZenQuote(quote, author);
+            QuoteResponse quoteObj = quotes[0];
+            return new ZenQuote(quoteObj.quote, quoteObj.author);
 
         } catch (Exception e) {
-            throw new Exception("Failed to fetch Zen Quote of the Day: " + e.getMessage());
+            throw new Exception("Failed to fetch quote: " + e.getMessage());
         }
     }
 
+    // Inner class to map the JSON structure from zenquotes.io
+    private static class QuoteResponse {
+
+        @SerializedName("q")
+        String quote;
+
+        @SerializedName("a")
+        String author;
+    }
 }

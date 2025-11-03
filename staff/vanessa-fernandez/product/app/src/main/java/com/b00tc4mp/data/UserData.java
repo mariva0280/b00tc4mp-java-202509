@@ -1,4 +1,4 @@
-package com.b00tc4mp.app.data;
+package com.b00tc4mp.data;
 
 public class UserData {
     private String id;
@@ -24,6 +24,7 @@ public class UserData {
     public void setName(String name) {
         this.name = name;
     }
+
     public String getUsername() {
         return username;
     }
