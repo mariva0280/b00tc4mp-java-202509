@@ -1,4 +1,4 @@
-package com.bootcamp.api;
+package com.b00tc4mp.api;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
