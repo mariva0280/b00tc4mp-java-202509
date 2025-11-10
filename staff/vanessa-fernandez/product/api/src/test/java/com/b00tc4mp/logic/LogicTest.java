@@ -15,7 +15,6 @@ public class LogicTest {
     @BeforeEach
     void setUp() throws Exception {
         logic = Logic.get();
-        logic.userId = null; // Reset userId before each test
 
         Data.get().removeUsers(); // Clear users before each test
     }
@@ -46,8 +45,8 @@ public class LogicTest {
         String password = "password123";
         String confirmPassword = "password123";
 
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(name, username, password, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, username, password, confirmPassword));
 
         assertEquals("Name cannot be empty", exception.getMessage());
     }
@@ -58,8 +57,8 @@ public class LogicTest {
         String password = "password123";
         String confirmPassword = "password123";
 
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(null, username, password, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(null, username, password, confirmPassword));
 
         assertEquals("Name cannot be empty", exception.getMessage());
     }
@@ -71,8 +70,8 @@ public class LogicTest {
         String password = "password123";
         String confirmPassword = "password123";
 
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(name, username, password, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, username, password, confirmPassword));
 
         assertEquals("Username cannot be empty", exception.getMessage());
     }
@@ -83,8 +82,8 @@ public class LogicTest {
         String password = "password123";
         String confirmPassword = "password123";
 
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(name, null, password, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, null, password, confirmPassword));
 
         assertEquals("Username cannot be empty", exception.getMessage());
     }
@@ -96,8 +95,8 @@ public class LogicTest {
         String password = "";
         String confirmPassword = "";
 
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(name, username, password, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, username, password, confirmPassword));
 
         assertEquals("Password cannot be empty", exception.getMessage());
     }
@@ -108,8 +107,8 @@ public class LogicTest {
         String username = "testuser";
         String confirmPassword = "password123";
 
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(name, username, null, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, username, null, confirmPassword));
         assertEquals("Password cannot be empty", exception.getMessage());
 
     }
@@ -121,8 +120,8 @@ public class LogicTest {
         String password = "password123";
         String confirmPassword = "";
 
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(name, username, password, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, username, password, confirmPassword));
 
         assertEquals("Confirm Password cannot be empty", exception.getMessage());
     }
@@ -133,7 +132,8 @@ public class LogicTest {
         String username = "testuser";
         String password = "password123";
 
-        Exception exception = assertThrows(Exception.class, () -> logic.registerUser(name, username, password, null));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, username, password, null));
 
         assertEquals("Confirm Password cannot be empty", exception.getMessage());
     }
@@ -145,8 +145,8 @@ public class LogicTest {
         String password = "password123";
         String confirmPassword = "different";
 
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(name, username, password, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, username, password, confirmPassword));
 
         assertEquals("Passwords do not match", exception.getMessage());
     }
@@ -162,15 +162,15 @@ public class LogicTest {
         Data.get().addUser(new UserData(name, username, password));
 
         // Try registering same username again
-        Exception exception = assertThrows(Exception.class,
-                () -> logic.registerUser(name, username, password, confirmPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.registerUser(name, username, password, confirmPassword));
 
         assertEquals("User already exists", exception.getMessage());
     }
 
-    // Tests for loginUser
+    // Tests for authenticateUser
     @Test
-    void testloginUserSuccess() throws Exception {
+    void testauthenticateUserSuccess() throws Exception {
         String name = "Test User";
         String username = "testuser";
         String password = "password123";
@@ -179,62 +179,67 @@ public class LogicTest {
         Data.get().addUser(new UserData(name, username, password));
 
         // Authenticate
-        logic.loginUser(username, password);
+        logic.authenticateUser(username, password);
         // No exception means success
 
-        assertEquals(logic.userId, Data.get().findUserByUsername(username).getId());
+        // assertEquals(logic.userId, Data.get().findUserByUsername(username).getId());
     }
 
     @Test
-    void testloginUserEmptyUsername() {
+    void testauthenticateUserEmptyUsername() {
         String username = "";
         String password = "password123";
 
-        Exception exception = assertThrows(Exception.class, () -> logic.loginUser(username, password));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.authenticateUser(username, password));
 
         assertEquals("Username cannot be empty", exception.getMessage());
     }
 
     @Test
-    void testloginUserNullUsername() {
+    void testauthenticateUserNullUsername() {
         String password = "password123";
 
-        Exception exception = assertThrows(Exception.class, () -> logic.loginUser(null, password));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.authenticateUser(null, password));
 
         assertEquals("Username cannot be empty", exception.getMessage());
     }
 
     @Test
-    void testloginUserEmptyPassword() {
+    void testauthenticateUserEmptyPassword() {
         String username = "testuser";
         String password = "";
 
-        Exception exception = assertThrows(Exception.class, () -> logic.loginUser(username, password));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.authenticateUser(username, password));
 
         assertEquals("Password cannot be empty", exception.getMessage());
     }
 
     @Test
-    void testloginUserNullPassword() {
+    void testauthenticateUserNullPassword() {
         String username = "testuser";
 
-        Exception exception = assertThrows(Exception.class, () -> logic.loginUser(username, null));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.authenticateUser(username, null));
 
         assertEquals("Password cannot be empty", exception.getMessage());
     }
 
     @Test
-    void testloginUserUserNotFound() {
+    void testauthenticateUserUserNotFound() {
         String username = "testuser";
         String password = "password123";
 
-        Exception exception = assertThrows(Exception.class, () -> logic.loginUser(username, password));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.authenticateUser(username, password));
 
         assertEquals("User not found", exception.getMessage());
     }
 
     @Test
-    void testloginUserInvalidPassword() throws Exception {
+    void testauthenticateUserInvalidPassword() throws Exception {
         String name = "Test User";
         String username = "testuser";
         String password = "password123";
@@ -243,50 +248,10 @@ public class LogicTest {
         // Register user first
         Data.get().addUser(new UserData(name, username, password));
 
-        Exception exception = assertThrows(Exception.class, () -> logic.loginUser(username, wrongPassword));
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.authenticateUser(username, wrongPassword));
 
         assertEquals("Invalid password", exception.getMessage());
-    }
-
-    // Tests for logoutUser
-    @Test
-    void testLogoutUser() throws Exception {
-        String name = "Test User";
-        String username = "testuser";
-        String password = "password123";
-
-        // Register user first
-        UserData user = new UserData(name, username, password);
-
-        logic.userId = user.getId();
-
-        logic.logoutUser();
-
-        assertNull(logic.userId);
-    }
-
-    // Tests for isAuthenticated
-    @Test
-    void testIsAuthenticatedWhenLoggedIn() throws Exception {
-        String name = "Test User";
-        String username = "testuser";
-        String password = "password123";
-
-        // Register user first
-        UserData user = new UserData(name, username, password);
-        Data.get().addUser(user);
-
-        logic.userId = user.getId();
-        // No exception means success
-
-        assertTrue(logic.isUserLoggedIn());
-
-        assertEquals(logic.userId, Data.get().findUserByUsername(username).getId());
-    }
-
-    @Test
-    void testIsAuthenticatedWhenNotLoggedIn() {
-        assertFalse(logic.isUserLoggedIn());
     }
 
     // Tests for getCurrentUser
@@ -300,9 +265,8 @@ public class LogicTest {
         UserData user = new UserData(name, username, password);
         Data.get().addUser(user);
 
-        logic.userId = user.getId();
 
-        User currentUser = logic.getCurrentUser();
+        User currentUser = logic.getCurrentUser("TODO user id here");
 
         assertNotNull(currentUser);
         assertEquals(user.getId(), currentUser.getId());
@@ -312,7 +276,8 @@ public class LogicTest {
 
     @Test
     void testGetCurrentUserWhenNotLoggedIn() {
-        Exception exception = assertThrows(Exception.class, () -> logic.getCurrentUser());
+        Exception exception = assertThrows(Exception.class, ()
+                -> logic.getCurrentUser("TODO user id here"));
 
         assertEquals("No user is currently logged in", exception.getMessage());
     }
