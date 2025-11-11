@@ -189,7 +189,7 @@ public class App extends JFrame {
                 passwordField.setText("");
                 message.setText("");
 
-                String name = logic.getCurrentUser().getName();
+                String name = logic.getUserInfo().getName();
 
                 ZenQuote quote = logic.getZenQuoteOfDay();
 

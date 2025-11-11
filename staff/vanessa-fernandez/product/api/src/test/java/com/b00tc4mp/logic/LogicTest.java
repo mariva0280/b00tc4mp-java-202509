@@ -1,12 +1,13 @@
 package com.b00tc4mp.logic;
 
-import com.b00tc4mp.data.Data;
-import com.b00tc4mp.data.UserData;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.b00tc4mp.data.Data;
+import com.b00tc4mp.data.UserData;
 
 public class LogicTest {
 
@@ -266,10 +267,9 @@ public class LogicTest {
         Data.get().addUser(user);
 
 
-        User currentUser = logic.getCurrentUser("TODO user id here");
+        User currentUser = logic.getUserInfo("TODO user id here");
 
         assertNotNull(currentUser);
-        assertEquals(user.getId(), currentUser.getId());
         assertEquals(user.getName(), currentUser.getName());
         assertEquals(user.getUsername(), currentUser.getUsername());
     }
@@ -277,7 +277,7 @@ public class LogicTest {
     @Test
     void testGetCurrentUserWhenNotLoggedIn() {
         Exception exception = assertThrows(Exception.class, ()
-                -> logic.getCurrentUser("TODO user id here"));
+                -> logic.getUserInfo("TODO user id here"));
 
         assertEquals("No user is currently logged in", exception.getMessage());
     }

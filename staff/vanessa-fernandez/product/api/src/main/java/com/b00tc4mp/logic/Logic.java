@@ -1,20 +1,19 @@
 package com.b00tc4mp.logic;
 
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.URI;
+
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
 import com.b00tc4mp.data.Data;
 import com.b00tc4mp.data.UserData;
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
 
 public class Logic {
 
     private static Logic instance;
-
-    protected String userId;
 
     private Data data;
 
@@ -82,17 +81,16 @@ public class Logic {
         }
 
         return user.getId();
-
     }
 
-    public User getCurrentUser(String userID) throws Exception {
+    public User getUserInfo(String userId) throws Exception {
         if (userId == null) {
             throw new Exception("No user is currently logged in");
         }
 
         UserData user = data.findUserById(userId);
 
-        return new User(user.getId(), user.getName(), user.getUsername());
+        return new User(user.getName(), user.getUsername());
     }
 
     public ZenQuote getZenQuoteOfDay() throws Exception {

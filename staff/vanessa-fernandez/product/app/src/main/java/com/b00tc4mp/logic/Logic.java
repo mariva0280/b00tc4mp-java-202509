@@ -10,8 +10,8 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 import com.b00tc4mp.data.Data;
-import com.b00tc4mp.data.UserData;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 public class Logic {
 
@@ -60,13 +60,13 @@ public class Logic {
 
         try {
             String jsonBody = String.format("""
-                    {
-                        "name": "%s",
-                        "username": "%s",
-                        "password": "%s",
-                        "confirmPassword": "%s"
-                    }
-                    """, name, username, password, confirmPassword);
+            {
+                "name": "%s",
+                "username": "%s",
+                "password": "%s",
+                "confirmPassword": "%s"
+            }
+            """, name, username, password, confirmPassword);
 
             HttpClient client = HttpClient.newHttpClient();
 
@@ -103,35 +103,95 @@ public class Logic {
             throw new Exception("Password cannot be empty");
         }
 
-        UserData user = data.findUserByUsername(username);
+        try {
+            String jsonBody = String.format("""
+            {
+                "username": "%s",
+                "password": "%s"
+            }
+            """, username, password);
 
-        if (user == null) {
-            throw new Exception("User not found");
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI("http://localhost:8080/api/users/auth"))
+                    .header("Content-Type", "application/json")
+                    .POST(BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                Gson gson = new Gson();
+                JsonPrimitive loginResponse = gson.fromJson(response.body(), JsonPrimitive.class);
+
+                String token = loginResponse.getAsString();
+
+                data.setToken(token);
+
+                System.out.println(token);
+
+                return;
+            }
+
+            Gson gson = new Gson();
+            JsonObject errorResponse = gson.fromJson(response.body(), JsonObject.class);
+
+            String error = errorResponse.get("error").getAsString();
+            String message = errorResponse.get("message").getAsString();
+
+            throw new Exception(error + ": " + message);
+        } catch (Exception e) {
+            throw new Exception("error in login: " + e.getMessage());
         }
-
-        if (!user.getPassword().equals(password)) {
-            throw new Exception("Invalid password");
-        }
-
-        this.userId = user.getId();
     }
 
     public void logoutUser() {
-        this.userId = null;
+        data.setToken(null);
     }
 
     public boolean isUserLoggedIn() {
-        return this.userId != null;
+        return data.getToken() != null;
     }
 
-    public User getCurrentUser() throws Exception {
-        if (this.userId == null) {
-            throw new Exception("No user is currently logged in");
+    public User getUserInfo() throws Exception {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI("http://localhost:8080/api/users/info"))
+                    .header("Authorization", "Bearer " + data.getToken())
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+
+            if (response.statusCode() == 200) {
+                Gson gson = new Gson();
+                JsonObject userInfoResponse = gson.fromJson(response.body(), JsonObject.class);
+
+                String name = userInfoResponse.get("name").getAsString();
+                String username = userInfoResponse.get("username").getAsString();
+
+                User user = new User(name, username);
+
+                return user;
+            }
+
+            Gson gson = new Gson();
+            JsonObject errorResponse = gson.fromJson(response.body(), JsonObject.class);
+
+            String error = errorResponse.get("error").getAsString();
+            String message = errorResponse.get("message").getAsString();
+
+            throw new Exception(error + ": " + message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("error in get user info: " + e.getMessage());
         }
-
-        UserData user = data.findUserById(this.userId);
-
-        return new User(user.getId(), user.getName(), user.getUsername());
     }
 
     public ZenQuote getZenQuoteOfDay() throws Exception {
