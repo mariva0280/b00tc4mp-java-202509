@@ -1,15 +1,16 @@
 package com.b00tc4mp.logic;
 
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.URI;
-
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
 
 import com.b00tc4mp.data.Data;
 import com.b00tc4mp.data.UserData;
+import com.b00tc4mp.error.DuplicityException;
+import com.b00tc4mp.error.ValidationException;
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
 public class Logic {
 
@@ -33,29 +34,29 @@ public class Logic {
 
     public void registerUser(String name, String username, String password, String confirmPassword) throws Exception {
         if (name == null || name.isEmpty()) {
-            throw new Exception("Name cannot be empty");
+            throw new ValidationException("name cannot be empty");
         }
 
         if (username == null || username.isEmpty()) {
-            throw new Exception("Username cannot be empty");
+            throw new ValidationException("username cannot be empty");
         }
 
         if (password == null || password.isEmpty()) {
-            throw new Exception("Password cannot be empty");
+            throw new ValidationException("password cannot be empty");
         }
 
         if (confirmPassword == null || confirmPassword.isEmpty()) {
-            throw new Exception("Confirm Password cannot be empty");
+            throw new ValidationException("confirm password cannot be empty");
         }
 
         if (!password.equals(confirmPassword)) {
-            throw new Exception("Passwords do not match");
+            throw new ValidationException("passwords do not match");
         }
 
         UserData user = data.findUserByUsername(username);
 
         if (user != null) {
-            throw new Exception("User already exists");
+            throw new DuplicityException("user already exists");
         }
 
         data.addUser(new UserData(name, username, password));
@@ -126,6 +127,7 @@ public class Logic {
 
     // Inner class to map the JSON structure from zenquotes.io
     private static class QuoteResponse {
+
         @SerializedName("q")
         String quote;
 
