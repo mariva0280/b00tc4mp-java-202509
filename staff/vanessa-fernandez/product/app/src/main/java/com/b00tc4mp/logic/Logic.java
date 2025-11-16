@@ -13,6 +13,9 @@ import com.b00tc4mp.data.Data;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import com.b00tc4mp.error.ExceptionProvider;
+import com.b00tc4mp.error.SystemException;
+
 public class Logic {
 
     private static Logic instance;
@@ -37,6 +40,7 @@ public class Logic {
         return instance;
     }
 
+    // TODO declare throw of Validation, Duplicity and System exceptions
     public void registerUser(String name, String username, String password, String confirmPassword) throws Exception {
         if (name == null || name.isEmpty()) {
             throw new Exception("Name cannot be empty");
@@ -58,8 +62,7 @@ public class Logic {
             throw new Exception("Passwords do not match");
         }
 
-        try {
-            String jsonBody = String.format("""
+        String jsonBody = String.format("""
             {
                 "name": "%s",
                 "username": "%s",
@@ -68,30 +71,29 @@ public class Logic {
             }
             """, name, username, password, confirmPassword);
 
-            HttpClient client = HttpClient.newHttpClient();
+        HttpClient client = HttpClient.newHttpClient();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:8080/api/users"))
-                    .header("Content-Type", "application/json")
-                    .POST(BodyPublishers.ofString(jsonBody))
-                    .build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:8080/api/users"))
+                .header("Content-Type", "application/json")
+                .POST(BodyPublishers.ofString(jsonBody))
+                .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 201) {
-                return;
-            }
-
-            Gson gson = new Gson();
-            JsonObject errorResponse = gson.fromJson(response.body(), JsonObject.class);
-
-            String error = errorResponse.get("error").getAsString();
-            String message = errorResponse.get("message").getAsString();
-
-            throw new Exception(error + ": " + message);
-        } catch (Exception e) {
-            throw new Exception("error in register: " + e.getMessage());
+        if (response.statusCode() == 201) {
+            return;
         }
+
+        Gson gson = new Gson();
+        JsonObject errorResponse = gson.fromJson(response.body(), JsonObject.class);
+
+        String error = errorResponse.get("error").getAsString();
+        String message = errorResponse.get("message").getAsString();
+
+        Exception exception = ExceptionProvider.newInstance(error, message);
+
+        throw exception;
     }
 
     public void loginUser(String username, String password) throws Exception {

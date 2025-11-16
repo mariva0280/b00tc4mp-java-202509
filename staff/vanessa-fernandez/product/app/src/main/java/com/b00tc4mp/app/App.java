@@ -1,11 +1,24 @@
 package com.b00tc4mp.app;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import com.b00tc4mp.logic.Logic;
 import com.b00tc4mp.logic.ZenQuote;
-
-import java.awt.*;
 
 public class App extends JFrame {
 
@@ -118,7 +131,7 @@ public class App extends JFrame {
 
                 cardLayout.show(cards, "login");
             } catch (Exception ex) {
-                message.setText("Error: " + ex.getMessage());
+                message.setText(ex.getClass().getSimpleName()+ ": " + ex.getMessage());
             }
         });
 
