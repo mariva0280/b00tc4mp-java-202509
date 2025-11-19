@@ -7,8 +7,12 @@ import java.net.http.HttpResponse;
 
 import com.b00tc4mp.data.Data;
 import com.b00tc4mp.data.UserData;
+import com.b00tc4mp.error.CredentialException;
 import com.b00tc4mp.error.DuplicityException;
+import com.b00tc4mp.error.NotFoundException;
+import com.b00tc4mp.error.SystemException;
 import com.b00tc4mp.error.ValidationException;
+import com.b00tc4mp.validation.Validate;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
@@ -32,26 +36,10 @@ public class Logic {
         return instance;
     }
 
-    public void registerUser(String name, String username, String password, String confirmPassword) throws Exception {
-        if (name == null || name.isEmpty()) {
-            throw new ValidationException("name cannot be empty");
-        }
-
-        if (username == null || username.isEmpty()) {
-            throw new ValidationException("username cannot be empty");
-        }
-
-        if (password == null || password.isEmpty()) {
-            throw new ValidationException("password cannot be empty");
-        }
-
-        if (confirmPassword == null || confirmPassword.isEmpty()) {
-            throw new ValidationException("confirm password cannot be empty");
-        }
-
-        if (!password.equals(confirmPassword)) {
-            throw new ValidationException("passwords do not match");
-        }
+    public void registerUser(String name, String username, String password, String passwordRepeat) throws Exception {
+        Validate.name(name);
+        Validate.username(username);
+        Validate.passwords(password, passwordRepeat);
 
         UserData user = data.findUserByUsername(username);
 
@@ -62,34 +50,31 @@ public class Logic {
         data.addUser(new UserData(name, username, password));
     }
 
-    public String authenticateUser(String username, String password) throws Exception {
-        if (username == null || username.isEmpty()) {
-            throw new Exception("Username cannot be empty");
-        }
-
-        if (password == null || password.isEmpty()) {
-            throw new Exception("Password cannot be empty");
-        }
+    public String authenticateUser(String username, String password) throws ValidationException, NotFoundException, CredentialException {
+        Validate.username(username);
+        Validate.password(password);
 
         UserData user = data.findUserByUsername(username);
 
         if (user == null) {
-            throw new Exception("User not found");
+            throw new NotFoundException("User not found");
         }
 
         if (!user.getPassword().equals(password)) {
-            throw new Exception("Invalid password");
+            throw new CredentialException("Invalid password");
         }
 
         return user.getId();
     }
 
     public User getUserInfo(String userId) throws Exception {
-        if (userId == null) {
-            throw new Exception("No user is currently logged in");
-        }
+        Validate.userId(userId);
 
         UserData user = data.findUserById(userId);
+
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
 
         return new User(user.getName(), user.getUsername());
     }
@@ -121,7 +106,7 @@ public class Logic {
             return new ZenQuote(quoteObj.quote, quoteObj.author);
 
         } catch (Exception e) {
-            throw new Exception("Failed to fetch quote: " + e.getMessage());
+            throw new SystemException("Failed to fetch quote: " + e);
         }
     }
 

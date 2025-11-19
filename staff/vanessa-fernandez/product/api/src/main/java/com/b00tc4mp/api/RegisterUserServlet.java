@@ -1,10 +1,7 @@
 package com.b00tc4mp.api;
 
-import com.b00tc4mp.logic.Logic;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,10 +9,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import com.b00tc4mp.api.helper.HandlerHelper;
+import com.b00tc4mp.logic.Logic;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 
 @WebServlet(name = "RegisterUserServlet", urlPatterns = "/users")
 public class RegisterUserServlet extends HttpServlet {
@@ -48,7 +46,7 @@ public class RegisterUserServlet extends HttpServlet {
         String name;
         String username;
         String password;
-        String confirmPassword;
+        String passwordRepeat;
 
         try {
             json = gson.fromJson(jsonInput, JsonObject.class);
@@ -56,7 +54,7 @@ public class RegisterUserServlet extends HttpServlet {
             name = json.get("name").getAsString().trim();
             username = json.get("username").getAsString().trim();
             password = json.get("password").getAsString();
-            confirmPassword = json.get("confirmPassword").getAsString();
+            passwordRepeat = json.get("passwordRepeat").getAsString();
         } catch (JsonSyntaxException e) {
             HandlerHelper.sendError(response, out, HttpServletResponse.SC_BAD_REQUEST, e.getClass().getSimpleName(), "Invalid JSON format");
             return;
@@ -66,7 +64,7 @@ public class RegisterUserServlet extends HttpServlet {
         }
 
         try {
-            logic.registerUser(name, username, password, confirmPassword);
+            logic.registerUser(name, username, password, passwordRepeat);
 
             // Success response
             response.setStatus(HttpServletResponse.SC_CREATED);

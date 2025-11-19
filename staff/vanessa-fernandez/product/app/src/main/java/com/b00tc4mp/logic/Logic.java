@@ -1,20 +1,27 @@
 package com.b00tc4mp.logic;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpRequest.BodyPublishers;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
 import com.b00tc4mp.data.Data;
+import com.b00tc4mp.error.CredentialException;
+import com.b00tc4mp.error.DuplicityException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import com.b00tc4mp.error.ExceptionProvider;
+import com.b00tc4mp.error.NotFoundException;
 import com.b00tc4mp.error.SystemException;
+import com.b00tc4mp.error.ValidationException;
+import com.b00tc4mp.validation.Validate;
 
 public class Logic {
 
@@ -40,70 +47,54 @@ public class Logic {
         return instance;
     }
 
-    // TODO declare throw of Validation, Duplicity and System exceptions
-    public void registerUser(String name, String username, String password, String confirmPassword) throws Exception {
-        if (name == null || name.isEmpty()) {
-            throw new Exception("Name cannot be empty");
-        }
+    public void registerUser(String name, String username, String password, String passwordRepeat) throws ValidationException, DuplicityException {
+        Validate.name(name);
+        Validate.username(username);
+        Validate.passwords(password, passwordRepeat);
 
-        if (username == null || username.isEmpty()) {
-            throw new Exception("Username cannot be empty");
-        }
+        try {
+            String jsonBody = String.format("""
+                                                    {
+                                                        "name": "%s",
+                                                        "username": "%s",
+                                                        "password": "%s",
+                                                        "passwordRepeat": "%s"
+                                                    }
+                                                    """, name, username, password, passwordRepeat);
 
-        if (password == null || password.isEmpty()) {
-            throw new Exception("Password cannot be empty");
-        }
+            HttpClient client = HttpClient.newHttpClient();
 
-        if (confirmPassword == null || confirmPassword.isEmpty()) {
-            throw new Exception("Confirm Password cannot be empty");
-        }
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI("http://localhost:8080/api/users"))
+                    .header("Content-Type", "application/json")
+                    .POST(BodyPublishers.ofString(jsonBody))
+                    .build();
 
-        if (!password.equals(confirmPassword)) {
-            throw new Exception("Passwords do not match");
-        }
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        String jsonBody = String.format("""
-            {
-                "name": "%s",
-                "username": "%s",
-                "password": "%s",
-                "confirmPassword": "%s"
+            if (response.statusCode() == 201) {
+                return;
             }
-            """, name, username, password, confirmPassword);
 
-        HttpClient client = HttpClient.newHttpClient();
+            Gson gson = new Gson();
+            JsonObject errorResponse = gson.fromJson(response.body(), JsonObject.class);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:8080/api/users"))
-                .header("Content-Type", "application/json")
-                .POST(BodyPublishers.ofString(jsonBody))
-                .build();
+            String error = errorResponse.get("error").getAsString();
+            String message = errorResponse.get("message").getAsString();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() == 201) {
-            return;
+            throw ExceptionProvider.newInstance(error, message);
+        } catch (IOException e) {
+            throw new SystemException("connection error", e);
+        } catch (InterruptedException e) {
+            throw new SystemException("connection error", e);
+        } catch (URISyntaxException e) {
+            throw new SystemException("connection error", e);
         }
-
-        Gson gson = new Gson();
-        JsonObject errorResponse = gson.fromJson(response.body(), JsonObject.class);
-
-        String error = errorResponse.get("error").getAsString();
-        String message = errorResponse.get("message").getAsString();
-
-        Exception exception = ExceptionProvider.newInstance(error, message);
-
-        throw exception;
     }
 
-    public void loginUser(String username, String password) throws Exception {
-        if (username == null || username.isEmpty()) {
-            throw new Exception("Username cannot be empty");
-        }
-
-        if (password == null || password.isEmpty()) {
-            throw new Exception("Password cannot be empty");
-        }
+    public void loginUser(String username, String password) throws ValidationException, NotFoundException, CredentialException {
+        Validate.username(username);
+        Validate.password(password);
 
         try {
             String jsonBody = String.format("""
@@ -142,9 +133,13 @@ public class Logic {
             String error = errorResponse.get("error").getAsString();
             String message = errorResponse.get("message").getAsString();
 
-            throw new Exception(error + ": " + message);
-        } catch (Exception e) {
-            throw new Exception("error in login: " + e.getMessage());
+            throw ExceptionProvider.newInstance(error, message);
+        } catch (IOException e) {
+            throw new SystemException("connection error", e);
+        } catch (InterruptedException e) {
+            throw new SystemException("connection error", e);
+        } catch (URISyntaxException e) {
+            throw new SystemException("connection error", e);
         }
     }
 
@@ -189,42 +184,40 @@ public class Logic {
             String error = errorResponse.get("error").getAsString();
             String message = errorResponse.get("message").getAsString();
 
-            throw new Exception(error + ": " + message);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception("error in get user info: " + e.getMessage());
+            throw ExceptionProvider.newInstance(error, message);
+        } catch (IOException e) {
+            throw new SystemException("connection error", e);
+        } catch (InterruptedException e) {
+            throw new SystemException("connection error", e);
+        } catch (URISyntaxException e) {
+            throw new SystemException("connection error", e);
         }
     }
 
     public ZenQuote getZenQuoteOfDay() throws Exception {
-        try {
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("https://zenquotes.io/api/today"))
-                    .GET()
-                    .build();
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("https://zenquotes.io/api/today"))
+                .GET()
+                .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            int status = response.statusCode();
+        int status = response.statusCode();
 
-            if (status != 200) {
-                throw new Exception("Failed to fetch quote, status code: " + status);
-            }
-
-            // Parse JSON using Gson
-            QuoteResponse[] quotes = gson.fromJson(response.body(), QuoteResponse[].class);
-
-            if (quotes.length == 0) {
-                throw new Exception("No quote found in response");
-            }
-
-            QuoteResponse quoteObj = quotes[0];
-            return new ZenQuote(quoteObj.quote, quoteObj.author);
-
-        } catch (Exception e) {
-            throw new Exception("Failed to fetch quote: " + e.getMessage());
+        if (status != 200) {
+            throw new Exception("Failed to fetch quote, status code: " + status);
         }
+
+        // Parse JSON using Gson
+        QuoteResponse[] quotes = gson.fromJson(response.body(), QuoteResponse[].class);
+
+        if (quotes.length == 0) {
+            throw new Exception("No quote found in response");
+        }
+
+        QuoteResponse quoteObj = quotes[0];
+        return new ZenQuote(quoteObj.quote, quoteObj.author);
     }
 
     // Inner class to map the JSON structure from zenquotes.io
