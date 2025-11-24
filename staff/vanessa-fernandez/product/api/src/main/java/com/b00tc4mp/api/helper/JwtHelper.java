@@ -9,10 +9,10 @@ import java.util.Date;
 public class JwtHelper {
 
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(
-            "mySuperSecretKeyThatIsAtLeast32BytesLong!".getBytes()
+            JwtConfig.getSecret().getBytes()
     );
 
-    private static final long EXPIRATION_MS = 1000 * 60 * 60 * 24;
+    private static final long EXPIRATION_MS = JwtConfig.getExpiration();
 
     public static String issueToken(String userId) {
         return Jwts.builder()

@@ -22,13 +22,13 @@ import com.b00tc4mp.api.helper.JwtHelper;
 public class AuthenticateUserServlet extends HttpServlet {
 
     private static final Gson gson = new Gson();
-    
+
     private Logic logic;
 
     @Override
     public void init() throws ServletException {
         super.init();
-    
+
         this.logic = Logic.get();
     }
 
@@ -78,5 +78,4 @@ public class AuthenticateUserServlet extends HttpServlet {
         }
     }
 
-   
 }
