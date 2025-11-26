@@ -21,6 +21,7 @@ import com.b00tc4mp.error.ExceptionProvider;
 import com.b00tc4mp.error.NotFoundException;
 import com.b00tc4mp.error.SystemException;
 import com.b00tc4mp.error.ValidationException;
+import com.b00tc4mp.logic.helper.Config;
 import com.b00tc4mp.validation.Validate;
 
 public class Logic {
@@ -54,18 +55,18 @@ public class Logic {
 
         try {
             String jsonBody = String.format("""
-                                                    {
-                                                        "name": "%s",
-                                                        "username": "%s",
-                                                        "password": "%s",
-                                                        "passwordRepeat": "%s"
-                                                    }
-                                                    """, name, username, password, passwordRepeat);
+            {
+                "name": "%s",
+                "username": "%s",
+                "password": "%s",
+                "passwordRepeat": "%s"
+            }
+            """, name, username, password, passwordRepeat);
 
             HttpClient client = HttpClient.newHttpClient();
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:8080/api/users"))
+                    .uri(new URI(Config.getApiUrl() + "/users"))
                     .header("Content-Type", "application/json")
                     .POST(BodyPublishers.ofString(jsonBody))
                     .build();
@@ -107,7 +108,7 @@ public class Logic {
             HttpClient client = HttpClient.newHttpClient();
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:8080/api/users/auth"))
+                    .uri(new URI(Config.getApiUrl() + "/users/auth"))
                     .header("Content-Type", "application/json")
                     .POST(BodyPublishers.ofString(jsonBody))
                     .build();
@@ -121,8 +122,6 @@ public class Logic {
                 String token = loginResponse.getAsString();
 
                 data.setToken(token);
-
-                System.out.println(token);
 
                 return;
             }
@@ -156,15 +155,12 @@ public class Logic {
             HttpClient client = HttpClient.newHttpClient();
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:8080/api/users/info"))
+                    .uri(new URI(Config.getApiUrl() + "/users/info"))
                     .header("Authorization", "Bearer " + data.getToken())
                     .GET()
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            System.out.println(response.statusCode());
-            System.out.println(response.body());
 
             if (response.statusCode() == 200) {
                 Gson gson = new Gson();
