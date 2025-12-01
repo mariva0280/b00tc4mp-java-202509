@@ -6,30 +6,30 @@ import java.util.Properties;
 
 import com.b00tc4mp.error.SystemException;
 
-public final class JwtConfig {
-    private static final String SECRET;
-    private static final long EXPIRATION;
+public final class Config {
+    private static final String JWT_SECRET;
+    private static final long JWT_EXPIRATION;
 
     static {
         Properties prop = new Properties();
-        try (InputStream input = JwtConfig.class.getClassLoader()
+        try (InputStream input = Config.class.getClassLoader()
         .getResourceAsStream("application.properties")) {
             if (input == null) {
                 throw new SystemException("application.properties not found");
             }
             prop.load(input);
-            SECRET = prop.getProperty("jwt.secret");
-            EXPIRATION = Long.parseLong(prop.getProperty("jwt.expiration"));
+            JWT_SECRET = prop.getProperty("jwt.secret");
+            JWT_EXPIRATION = Long.parseLong(prop.getProperty("jwt.expiration"));
         } catch (IOException e) {
             throw new SystemException ("Failed to load JWT config", e);
         }
     }
 
-    public static String getSecret() {
-        return SECRET;
+    public static String getJwtSecret() {
+        return JWT_SECRET;
     }
 
-    public static long getExpiration() {
-        return EXPIRATION;
+    public static long getJwtExpiration() {
+        return JWT_EXPIRATION;
     }
 }
