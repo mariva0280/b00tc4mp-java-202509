@@ -1,9 +1,10 @@
 package com.b00tc4mp.data;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Data {
-    private ArrayList<UserData> users = new ArrayList<>();
+    private List<UserData> users = new ArrayList<>();
     private static Data instance;
 
     private Data() {}
@@ -22,7 +23,7 @@ public class Data {
         users.add(user);
     }
 
-    public ArrayList<UserData> getUsers() {
+    public List<UserData> getUsers() {
         return users;
     }
 
