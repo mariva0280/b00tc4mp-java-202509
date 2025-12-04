@@ -6,8 +6,8 @@ public class UserData {
     private String username;
     private String password;
 
-    public UserData(String name, String username, String password) {
-        this.id = java.util.UUID.randomUUID().toString();
+    public UserData(String id, String name, String username, String password) {
+        this.id = id;
         this.name = name;
         this.username = username;
         this.password = password;
