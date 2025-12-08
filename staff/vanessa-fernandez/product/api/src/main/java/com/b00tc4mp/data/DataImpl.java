@@ -1,11 +1,16 @@
 package com.b00tc4mp.data;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.b00tc4mp.Config;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class DataImpl implements Data {
 
@@ -13,9 +18,9 @@ public class DataImpl implements Data {
 
     static {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mysql://localhost:3306/b00tc4mp?useSSL=false&serverTimezone=UTC");
-        config.setUsername("root");
-        config.setPassword("RootPass123*");           // change this obviously
+        config.setJdbcUrl("jdbc:" + Config.getDbUri()); 
+        config.setUsername(Config.getDbUser());
+        config.setPassword(Config.getDbPassword());           // change this obviously
         config.setMaximumPoolSize(10);
         ds = new HikariDataSource(config);
     }

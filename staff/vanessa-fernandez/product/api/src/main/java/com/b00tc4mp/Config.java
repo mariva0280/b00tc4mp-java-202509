@@ -1,4 +1,4 @@
-package com.b00tc4mp.api.helper;
+package com.b00tc4mp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +9,9 @@ import com.b00tc4mp.error.SystemException;
 public final class Config {
     private static final String JWT_SECRET;
     private static final long JWT_EXPIRATION;
+    private static final String DB_URI;
+    private static final String DB_USER;
+    private static final String DB_PASSWORD;
 
     static {
         Properties prop = new Properties();
@@ -20,6 +23,9 @@ public final class Config {
             prop.load(input);
             JWT_SECRET = prop.getProperty("jwt.secret");
             JWT_EXPIRATION = Long.parseLong(prop.getProperty("jwt.expiration"));
+            DB_URI = prop.getProperty("db.uri");
+            DB_USER = prop.getProperty("db.user");  
+            DB_PASSWORD = prop.getProperty("db.password");
         } catch (IOException e) {
             throw new SystemException ("Failed to load JWT config", e);
         }
@@ -31,5 +37,17 @@ public final class Config {
 
     public static long getJwtExpiration() {
         return JWT_EXPIRATION;
+    }
+
+    public static String getDbUri() {
+        return DB_URI;
+    }
+
+    public static String getDbUser() {
+        return DB_USER;
+    }
+    
+    public static String getDbPassword() {
+        return DB_PASSWORD;
     }
 }

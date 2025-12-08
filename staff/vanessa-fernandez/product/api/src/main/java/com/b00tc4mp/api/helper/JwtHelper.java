@@ -1,10 +1,13 @@
 package com.b00tc4mp.api.helper;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+import java.util.Date;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
+
+import com.b00tc4mp.Config;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 public class JwtHelper {
 

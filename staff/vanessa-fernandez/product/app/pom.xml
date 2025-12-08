@@ -38,6 +38,8 @@
                 <version>3.14.1</version>
                 <configuration>
                     <release>15</release>
+                    <debug>true</debug>
+                    <debuglevel>lines,vars,source</debuglevel>
                 </configuration>
             </plugin>
 
